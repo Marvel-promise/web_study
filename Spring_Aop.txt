@@ -1,0 +1,24 @@
+面向切面编程 Aop:通过预编译方式和运行期动态代理实现程序功能统一维护的一种技术。(解耦合，降低耦合度)
+    AOP的作用：在运行期间，在不修改源码的情况下对方法的功能增强
+        优势：减少重复代码，提高开发效率
+Target(目标对像）：代理的目标对象
+Proxy（代理）：一个被AOP织入增强后，就产生一个结果代理类
+Joinpoint(连接点（可以被增强的方法）):所谓连接点指那些被拦截到的点，在Spring中，这些点值得是方法，因为spring只支持方法类型的连接点
+PointCut(切入点)：切入点是指我们要对那些joinPoint进行拦截的定义
+Advice(通知/增强):通知指拦截到的JoinPoint之后所要做的事情就是通知
+aspect(切面):切入点和通知的结合
+Weaving(织入）：指把增强的应用到目标对象来创建代理对象的过程。Spring采用动态代理的织入，而AsceptJ采用编译期织入和类加载期织入
+
+明确事项：
+需要编写的内容
+    编写核心业务代码（目标类的目标方法）
+    编写切面类，切面类中有通知(增强功方法）
+    在配置文件中，配置织入关系，即将那些通知与那些连接点进行结合
+    切点表达式
+            <aop:before method="before" pointcut="execution(public void com.wang.aop.Target.save())"/>
+切点表达式抽取：
+    <!--            配置抽取切点表达式-->
+                <aop:pointcut id="myPointCut" expression="execution(* com.wang.aop.*.*(..))"/>
+                <aop:before method="before" pointcut-ref="myPointCut"/>
+                <aop:after method="after" pointcut="execution(public  void com.wang.aop.Target.save())"/>
+基于注解aop开发
