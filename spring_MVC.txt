@@ -1,0 +1,33 @@
+在web项目中，可以使用ServletContextListener监听web应用启动，我们可以在web使用时就加载Spring的配置文件，创建ApplicationContext，
+在将其存储到最大的域，servletContext域中，这样可以在任意位置从域中获取上下文ApplicationContext对象
+
+spring提供了一个监听器ContextLoaderListener将上面的功能实现，该监听器加载Spring配置文件，创建应用上下文对象，并存储到ServletContext域中
+，提供了一个客户端工具WebApplicationContextUtils共使用者获取应用上下文对象
+
+应用： 1.在web.xml中配置ContextLoaderListener监听器，导入Spring-web坐标
+        2.通过WebApplicationContextUtils获得上下文对象ApplicationContext
+
+springMVC 是java的实现MVC设计模式的请求驱动驱动类型轻量级Web框架
+
+开发步骤：
+    1.导入SpringMVC包
+    2.配置Servlet
+    3.编写POJO（Controller）
+    4.将Controller使用注解配置到Spring容器中(@component/@Controller)
+    5.配置组件扫描 (配置spring-mvc.xml文件中)
+    6.执行访问测试
+SpringMVC的执行流程
+    1.用户发送请求到前端控制器DispatcherServlet
+    2.DispatcherServlet收到请求调用HandMapping处理器映射器
+    3.处理器映射器找到具体的处理器（可以根据xml配置，注解进行查找），生成处理器对象及处理器拦截器（有就生成）一并返回DispatcherServlet。
+    4.DispatcherServlet调用HandlerAdapter处理器适配器。
+    5.HandlerAdapter经过适配器调用具体的处理器（Controller，后端控制器）
+    6.Controller执行完成返回ModelAndView。
+    7.HandlerAdapter将controller执行结果ModelAndView返回DispatcherServlet。
+    8.DispatcherServlet将ModelAndView传给ViewResolver视图解析器。
+    9.ViewResolver解析后返回具体View
+    10.DispatcherServlet根据View进行渲染视图（将模型数据填充至视图中）。DispatcherServlet响应用户。
+springMVC注解解析：
+    @RequestMapping 用于虚拟地址域真实资源的映射
+    参数：value 请求地址名称 method 指定请求方式 params 限定请求参数{"className"} 必须携带className
+
