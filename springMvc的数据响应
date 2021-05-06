@@ -1,0 +1,190 @@
+页面跳转：
+直接返回字符串
+通过ModelAndView对象返回
+@RequestMapping("/hahs")
+public class UserController {
+    //请求地址 http://localhost:8080/start
+    @RequestMapping(value = "/start")
+    public String save(){
+        System.out.println("Controller save money");
+        //相对地址
+        return "success";
+    }
+    @RequestMapping(value = "/start4")
+    public String save4(HttpServletRequest request){
+        request.setAttribute("username","12wjc");
+        //这种方式不常用
+        //相对地址
+        return "success";
+    }
+    @RequestMapping(value = "/start1")
+    public ModelAndView save1(){
+        /*
+        * Model：封装数据
+        * View:展示数据
+        * */
+        ModelAndView modelAndView = new ModelAndView();
+        //设置模型数据
+        modelAndView.addObject("username","123");
+        //设置视图
+        modelAndView.setViewName("success");
+        return modelAndView;
+    }
+    @RequestMapping(value = "/start2")//spring会对参数进行注入
+    public ModelAndView save2(ModelAndView modelAndView){
+        modelAndView.addObject("username","1234421");
+        //设置视图
+        modelAndView.setViewName("success");
+        return modelAndView;
+    }
+    @RequestMapping(value = "/start3")//spring会对参数进行注入
+    public String save3(Model model){
+        model.addAttribute("username","王玉辉");
+        return "success";
+    }
+回写数据：
+直接返回字符串
+
+    直接返回字符串：在框架中注入HttpServletResponse 回显数据
+     @RequestMapping(value = "/start5")//spring会对参数进行注入
+        public void save5(HttpServletResponse response) throws IOException {
+            response.getWriter().println("hello mySpring");
+        }
+       注解：直接回显String @ResponseBody
+
+返回对象或集合
+    @RequestMapping(value = "/start8")//spring会对参数进行注入
+    @ResponseBody//告知SpringMvc框架 不进行视图跳转 直接进行数据响应
+    public String save8() throws IOException {
+        User user = new User();
+        user.setUsername("zhangsan");
+        user.setAge(18);
+        //使用json转换工具，将对象转换成为一个Json格式字符串返回
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(user);
+        return json;
+    }
+    @RequestMapping(value = "/start9")//spring会对参数进行注入
+    @ResponseBody//告知SpringMvc框架 不进行视图跳转 直接进行数据响应
+    //期望将User转换为Json格式字符串
+    public User save9(){
+        User user = new User();
+        user.setUsername("zhangsan");
+        user.setAge(18);
+        return user;
+    }
+<!--    配置mvc注解器-->
+    <mvc:annotation-driven/>
+       <!-- <mvc:message-converters>
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+        </mvc:message-converters>-->
+<!--    </mvc:annotation-driven>-->
+springMVC获得请求数据
+    基本类型参数:
+         @RequestMapping(value = "/start10")//spring会对参数进行注入
+            @ResponseBody
+            public void save10(String username,int age){
+                System.out.println(username);
+                System.out.println(age);
+            }
+    POJO类型参数: Controller中的业务方法的POJO参数属性名与请求参数的name一致，参数值会自动映射配置
+             @RequestMapping(value = "/start11")//spring会对参数进行注入
+             @ResponseBody
+             public void save11(User user){
+                 System.out.println(user);
+             }
+    数组类型参数: 数组名称与请求参数的name一致，参数会自动映射匹配。//用得不多
+            @RequestMapping(value = "/start12")//spring会对参数进行注入
+            @ResponseBody
+            public void save12(String[] strs){
+                System.out.println(Arrays.asList(strs));
+            }
+    集合类型参数:要将集合参数包装到一个POJO中才可以
+    public class VO {
+        private List<User> userList;
+
+        public List<User> getUserList() {
+            return userList;
+        }
+
+        public void setUserList(List<User> userList) {
+            this.userList = userList;
+        }
+
+        @Override
+        public String toString() {
+            return "VO{" +
+                    "userList=" + userList +
+                    '}';
+        }
+    }
+    @RequestMapping(value = "/start13")//spring会对参数进行注入
+    @ResponseBody
+    public void save13(VO vo){
+        System.out.println(vo);
+    }
+    当使用ajax提交时，可以指定contextType为Json形式，那么参数位置使用@RequestBody可以直接接收集合数据而无需使用POJO进行包装
+        <mvc:resources mapping="/js/**" location="/js/"/>
+        @RequestMapping(value = "/start14")//spring会对参数进行注入
+            @ResponseBody
+            public void save14(@RequestBody List<User> users){
+                System.out.println(users);
+            }
+         $.ajax({
+                    type:"POST",
+                    url:"${pageContext.request.contextPath}/hahs/start14",
+                    data:JSON.stringify(userList),
+                    contentType:"application/json;charset=utf-8"
+                })
+请求乱码问题:
+    配置一个过滤器
+    <!--配置全局过滤的filter-->
+        <filter>
+            <filter-name>CharacterEncodingFilter</filter-name>
+            <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+            <init-param>
+                <param-name>encoding</param-name>
+                <param-value>UTF-8</param-value>
+            </init-param>
+        </filter>
+        <filter-mapping>
+            <filter-name>CharacterEncodingFilter</filter-name>
+            <url-pattern>/*</url-pattern>
+        </filter-mapping>
+参数绑定注解@requestParam
+@RequestMapping(value = "/start15")//spring会对参数进行注入
+    @ResponseBody
+    //将name参数映射到username中
+    public void save15(@RequestParam(value = "name") String username){
+        System.out.println(username);
+    }
+    参数：
+        value：与请求参数的名称
+        required：此在指定的请求参数是否必须包括，默认是ture，提交时如果没有参数则报错
+        defaultValue:当没有参数时，则指定默认值
+springMVC获得Restful风格的参数
+    url+请求方式
+    POST：用于新建资源 /user 新增user
+    GET：用于获取资源 /user/1 得到id=1的user
+    PUT:用于更新资源  /user/1 更新id=1的user
+    DELETE：用于删除资源 /user/1 删除id=1的user
+        //localhost:8080/hahs/start16/zhangsan
+        @RequestMapping(value = "/start16/{username}")//spring会对参数进行注入
+        @ResponseBody
+        //将name参数映射到username中
+        public void save16(@PathVariable("username") String username){
+            System.out.println(username);
+        }
+自定义类型转换器:
+    1.定义转换器类实现Converter接口
+    2.在配置文件中声明转换器
+    3.在<annotation-driven>中引用转换器
+SpringMVC获取请求头 使用@RequestHeader可以获得请求头信息
+    value：请求头的名称
+    required：是否必须携带此请求头
+@CookieValue
+使用@CookieValue可以获得指定的Cookie的值
+属性：
+    value：指定Cookie名称
+    required：是否必须携带此Cookie
