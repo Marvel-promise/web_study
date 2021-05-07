@@ -1,0 +1,71 @@
+拦截器的作用：
+    相当于Filter 用于处理器的预处理和后处理
+是SpringMVC框架的,只会拦截控制器方法，如果访问的是jsp,html,css,image或js是不会进行拦截
+拦截器的快速入门：
+    创建拦截器实现HandlerInterceptor接口
+    public class MyInterceptor1 implements HandlerInterceptor {
+        @Override //在目标方法之前执行
+        public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+            System.out.println("prehandler");
+            return true; //true表示放行,false表示不放行
+        }
+        @Override //目标方法执行之后视图返回之前执行
+        public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+            System.out.println("posthandler");
+        }
+        @Override //在整个流程都执行完毕后 执行
+        public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+            System.out.println("afterHandler");
+        }
+    }
+    配置拦截器 配置拦截器时，线配置先执行
+    <!--配置拦截器-->
+        <mvc:interceptors>
+            <mvc:interceptor>
+    <!--            对那些资源执行拦截操作 配置对哪些资源执行拦截操作-->
+                <mvc:mapping path="/**"/>
+                <!-- 配置哪些资源排除拦截操作-->
+                <mvc:exclude-mapping path="/hahs/start1"/>
+                <bean class="com.Wang.interceptor.MyInterceptor1"/>
+            </mvc:interceptor>
+        </mvc:interceptors>
+    测试拦截器的拦截效果
+    prehandler
+    目标资源执行---
+    posthandler
+    afterHandler
+异常处理机制:
+    异常处理的两种方式：
+        使用SpringMVC提供的简单异常处理器SimpleMappingExceptionResolver
+        <!--    配置简单的映射异常处理器   　与下面异常均不同时，才到这个异常 -->
+            <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+                <property name="defaultErrorView" value="error"/><!--默认错误视图-->
+                <property name="exceptionMappings">
+                    <map>
+        <!--                                异常类型                               错误视图-->
+                        <entry key="com.Wang.controller.TargetController" value="error"/>
+                        <entry key="java.lang.ClassCastException" value="error"/>
+                    </map>
+                </property>
+            </bean>
+        实现Spring的异常处理接口HandlerExceptionResolver自定义自己的异常处理器
+        public class MyExceptionResolver implements HandlerExceptionResolver {
+            /*
+            * 参数 Exception 异常对象
+            * 返回值：ModelAndView 跳转返回的视图
+            * */
+            @Override
+            public ModelAndView resolveException(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, Exception e) {
+                ModelAndView modelAndView = new ModelAndView();
+                if(e instanceof MyException){
+                    modelAndView.addObject("info","自定义异常");
+                }else if(e instanceof ClassCastException){
+                    modelAndView.addObject("info","类转换异常")  ;
+                }
+                modelAndView.setViewName("index");
+                return modelAndView;
+
+            }
+        }
+        <!--    自定义异常处理器    -->
+            <bean class="com.Wang.resolver.MyExceptionResolver"/>
