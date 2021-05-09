@@ -44,3 +44,51 @@ myBatis核心文件配置：
         ●使用完全限定资源定位符(URL) , 例如: <mapper url=" file://var/mappers/AuthorMapper.xml"/>
         ●使用映射器接口实现类的完全限定名，例如: <mapper class= "org.mybatis. builder.AuthorMapper"/>
         ●将包内的映射器接口实现全部注册为映射器，例如: <package name= "org.mybatis.builder"/>
+        mybatis的dao层实现方式：手写Dao，代理方式
+         1.代理开发方式介绍
+         采用Mybatis的代理开发方式实现DAO层的开发,这种方式是我们后面进入企业的主流。
+         Mapper接口开发方法只需要程序员编写Mapper接口(相当于Dao接口)， 由Mybatis 框架根据接口定义创建接
+         口的动态代理对象，代理对象的方法体同边Dao接[实现类方法。
+         Mapper接口开发需要遵循以下规范:
+         1、Mapper.xml文件中的namespace 与mapper接口的全限定名相同
+         2、Mapper接口方法名和Mapper.xml中定 义的每个statement的id相同
+         3、Mapper接口方法的输入参 数类型和mapper.xml中定义的每个sql的parameterType的类型相同
+         4、Mapper接口方法的输出参数类型和mapper.xml中定义的每个sql的resultType的类型相同
+         动态sql
+            <!--    动态sql标签-->
+                <select id="findByCondition" parameterType="user" resultType="user">
+                    select * from user
+                    <where>
+                        <if test="id!=0">
+                            and id=#{id}
+                        </if>
+                        <if test="username!=null">
+                            and username=${username}
+                        </if>
+                        <if test="password!=null">
+                            and password=#{password}
+                        </if>
+                    </where>
+                </select>
+            动态sql foreach 循环执行sql的拼接操作 例如 select * from user where id in (1,2,5)
+                <!--    数组用array-->
+                    <select id="findByIds" resultType="user" parameterType="list"> //集合
+                        select * from user
+                        <where>
+                            <foreach collection="list" open="id in(" close=")" item="id" separator=",">
+                                #{id}
+                            </foreach>
+                        </where>
+                    </select>
+            sql片段的抽取
+            <!--    sql语句的抽取-->
+                <sql id="selectUser">select * from user</sql>
+            引用
+            <include refid="selectUser"/>
+         plugins标签
+          MyBatis可以使用第三方的插件来对功能进行扩展,分页助手PageHelper是将分页的复杂操作进行封装,使用简单的方式即
+          可获得分页的相关数据
+          开发步骤:
+          ①导入通用PageHelper的坐标
+          ②在mybatis核心配置文件中配置PageHelper插件
+          ③测试分页数据获取
