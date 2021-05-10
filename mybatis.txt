@@ -92,3 +92,59 @@ myBatis核心文件配置：
           ①导入通用PageHelper的坐标
           ②在mybatis核心配置文件中配置PageHelper插件
           ③测试分页数据获取
+              mybatis的多表查询:
+    一对一
+       <resultMap id="orderMap" type="order">
+    <!--        手动指定字段与实体属性的映射关系
+       column 数据表字段名称
+       properties 实体属性名称
+       -->
+    <!--        主键-->
+            <id column="oid" property="id"/>
+    <!--        其他非主键-->
+            <result column="ordertime" property="ordertime"/>
+            <result column="total" property="total"/>
+    <!--        User-->
+    <!--        <result column="uid" property="user.id"/>
+            <result column="username" property="user.username"/>
+            <result column="password" property="user.password"/>
+            <result column="birthday" property="user.birthday"/>-->
+            <!--匹配 property 属性名称 javaType 是属性类型-->
+            <association property="user" javaType="user">
+                <id column="uid" property="id"/>
+                <result column="username" property="username"/>
+                <result column="password" property="password"/>
+                <result column="birthday" property="birthday"/>
+            </association>
+        </resultMap>
+        <select id="findAll" resultMap="orderMap">
+
+            select *,o.id oid from  orders o, user u where o.uid = u.id
+        </select>
+        一对多或多对多
+            <resultMap id="userAndRoleMap" type="user">
+                <id column="userId" property="id"/>
+                <result column="username" property="username"/>
+                <result column="password" property="password"/>
+                <result column="birthday" property="birthday"/>
+                <collection property="roleList" ofType="role">
+                    <!--            封装Order的数据-->
+                    <id column="roleId" property="id"/>
+                    <result column="roleName" property="roleName"/>
+                    <result column="roleDesc" property="roleDesc"/>
+                </collection>
+            </resultMap>
+            <select id="findUserAndRole" resultMap="userAndRoleMap">
+                select * FROM user u,sys_user_role ur,sys_role r where u.id = ur.userId and ur.roleId =r.id
+            </select>
+        MyBatis的常用注解
+        这几年来注解开发越来越流行，Mybatist也可以使用注解开发方式，这样我们就可以减少编写Mapper
+        映射文件了。我们先围绕-些基本的CRUD来学习， 再学习复杂映射多表操作。
+        @Insert:实现新增
+        @Update:实现更新
+        @Delete:实现删除
+        @Select:实现查询
+        @Result:实现结果集封装
+        @Results:可以与@Result-起使用， 封装多个结果集
+        @One:实现-对一结果集封装
+        @Many:实现- -对多结果集封装
