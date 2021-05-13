@@ -32,3 +32,10 @@
     移除无效远程仓库 git remote rm 移除时本地改变
     从远程仓库抓取与拉取  git pull/fetch pull 会自动合并/不会自动合并（git merge 分支，进行合并） $ git pull origin --allow-unrelated-histories （有数据时需要加入)
     推送到远程仓库 git push [remote-name] master
+    git branch [branch] 创建本地分支
+    git branch -d/D 删除分支
+    git push origin 分支名 推送到远程分支
+    git tag tagName 创建标签
+    git tag -d 删除标签
+    git push origin:refs/tags/[tag] 推送到远程仓库 标签
+    
