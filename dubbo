@@ -28,3 +28,8 @@ dubbo
             <artifactId>javassist</artifactId>
             <version>3.12.1.GA</version>
         </dependency>
+        
+ consummer端
+@Reference
+查找注解，查找远程
+配置中不用配置协议和端口
