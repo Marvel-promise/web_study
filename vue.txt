@@ -1,0 +1,92 @@
+vue init -y 将工程初始化为vue
+npm install vue --save 当前工程安装vue
+
+创建vue 初始化vue
+ {{}}获取显示数据
+v-model实现双向绑定
+v-on 演示效果
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="app">
+    <input type="text" v-model="num"><button v-on:click="num++">点我</button>
+    <h2>{{name}}  有个der {{num}}</h2>
+</div>
+<script type="text/javascript">
+<!--     初始化vue-->
+    var app = new Vue({
+        el:"#app",
+        data:{
+            name:"marvel",
+            num:"1"
+        }
+    })
+</script>
+</body>
+</html>
+
+vue实例的生命周期及钩子函数
+钩子函数在vue实力的各个生命周期自动调用：beforecrete,created,beforeMount,mounted,update
+beforeUpdate,destory,beforeDestory
+钩子函数不能使用箭头函数的方式编写
+插值表达式：{{表达式}} 表达式必须有返回值
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="app">
+    v-text:<span v-text="msg"></span>  不会渲染<h1>标签
+    <br>
+    v-html:<span v-html="msg"></span>
+</div>
+<script type="text/javascript">
+    <!--     初始化vue-->
+    var app = new Vue({
+        el:"#app",
+        data:{
+            msg:"<h1>msg</h1>"
+        }
+    })
+</script>
+</body>
+</html>
+●.stop :阻止事件冒泡
+.prevent:阻止默认事件发生
+●.capture: 使用事件捕获模式
+.self:只有元素自身触发事件才执行。(冒泡或捕获的都不执行)
+● .once:只执行- -次
+ <a href="text-html.html" @.prevent>黑呀</a>
+v-for 实现数组对象遍历
+ <div id="apc">
+<ul>
+    <li v-for="(user,index) in users" :key="index">
+        {{index}}----{{user.name}}----{{user.age}}---{{user.gander}}
+    </li>
+    <hr>
+    <li v-for="(value,key,index) in person">
+        {{index}}----{{key}}----{{value}}
+    </li>
+</ul>
+</div>
+<script type="text/javascript" >
+    var spc=new Vue({
+        el:"#apc",
+        data:{
+            users:[
+                {"name":"张三","age":"18","gander":"男"},
+                {"name":"李筱思","age":"22","gander":"女"},
+                {"name":"小思想","age":"23","gander":"男"},
+            ],
+            person:{"name":"阿里巴巴","age":"18","gander":"男","address":"中国"}
+        }
+    })
+</script>
