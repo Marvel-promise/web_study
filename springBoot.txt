@@ -1,0 +1,371 @@
+实现步骤：
+1.创建工程
+2.添加依赖（启动依赖，spring-boot-starter-web）；
+   <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.4.5</version>
+    </parent>
+    <groupId>com.Wang</groupId>
+    <artifactId>SpringBoot</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+</dependencies>
+
+3.创建启动器类
+//spring boot 工程都有一个启动引导类，这是工程的入口
+//并在引导类上添加@SpringBootApplication
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class,args);
+    }
+
+}
+
+4.创建处理器Controller
+@RestController
+public class HelloController {
+    @GetMapping("hello")
+    public String hello(){
+        return "hello spring boot";
+    }
+}
+
+java代码方式配置
+1.添加依赖项
+2.创建数据库
+3.创建数据库连接参数的配置文件jdbc.properties
+4.创建配置类
+
+@Configuration
+@PropertySource("classpath:jdbc.properties")
+public class JdbcConfig {
+    @Value("${jdbc.url}")
+    private  String url;
+    @Value("${jdbc.username}")
+    private  String username;
+    @Value("${jdbc.driverClassName}")
+    private  String driverClassName;
+    @Value("${jdbc.password}")
+    private  String password;
+    @Bean
+    public DataSource dataSource(){
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        return dataSource;
+    }
+}
+
+5.改造处理器类注入数据源并实现
+
+使用@ConfigurationProperties实现Spring boot 配置文件配置项读取和应用
+实现步骤：
+1.创建配置类jdbcProperties类，在该类名上添加@ConfigurationProperties
+//作用：从配置文件读取配置项
+//jdbc是前缀       配置项类中的变量名必须要与前缀之后的配置名称保持 松散绑定（相同)
+@ConfigurationProperties(prefix = "jdbc")
+public class JdbcProperties {
+    private String url;
+    private String driverClassName;
+    private String username;
+    private String password;
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getDriverClassName() {
+        return driverClassName;
+    }
+
+    public void setDriverClassName(String driverClassName) {
+        this.driverClassName = driverClassName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+2.配值applicstion.properties
+jdbc.driverClassName=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://127.0.0.1:3306/test?serverTimezone=UTC
+jdbc.username=root
+jdbc.password=071126
+3.将dbcProperties对象注入到jdbcConfig
+@EnableConfigurationProperties(JdbcProperties.class)
+ @Bean
+ public DataSource dataSource(JdbcProperties jdbcProperties){
+     DruidDataSource dataSource = new DruidDataSource();
+     dataSource.setDriverClassName(jdbcProperties.getDriverClassName());
+     dataSource.setUrl(jdbcProperties.getUrl());
+     dataSource.setUsername(jdbcProperties.getUsername());
+     dataSource.setPassword(jdbcProperties.getPassword());
+     return dataSource;
+ }
+优化：
+ @Bean
+ @ConfigurationProperties(prefix = "jdbc")
+ public DataSource dataSource(){
+     return new DruidDataSource();
+ }
+
+多个yml，yaml的类型
+多个yml配置文件：这些配置文件必须是application-**.yml，并且这些配置文件必须要在application.xml
+配置文件中激活之后才能使用
+如果properties和yml配置文件同时存在spring boot项目中；那么这两类配置文件都有效
+在两个配置文件中同时存在同名的配置项的话，会以properties文件为主
+application-abc.yml
+wang:
+  cc: 123123
+application-cc.yml
+tt:
+  cct: q15725
+application.yml
+#  激活其他yml配置文件 需要指定其他配置文件名称
+spring:
+  profiles:
+    active: abc,cc
+
+    @Autowired
+    private DataSource dataSource;
+    @Value("${wang.cc}")
+    private String cc;
+    @Value("${tt.cct}")
+    private String cct;
+    @GetMapping("hello")
+    public String hello(){
+        System.out.println("DataSource="+dataSource);
+        System.out.println(cc);
+        System.out.println(cct);
+        return "hello spring boot";
+    }
+springboot整合ssm ：需要使用数据库
+	将数据库表数据导入数据库
+编写实体类；可以使用lombok实体类进行简化
+	在idea中安装lombok插件
+	添加lombok依赖到项目文件
+	改造实体类使用lombok
+	//在编译阶段，会根据注解自动生成对应的方法；data包含get/set/hashCode/equals/toString方法
+	@Data
+整合spring'Mvc端口和静态资源
+修改tomcat端口：
+	查询**Properties,设置配置项（前缀+类变量名）到application配置文件中
+#    修改端口
+server:
+  port: 80
+访问项目中的静态资源
+	静态资源放置的位置；放置静态资源并访问这些资源；
+springboot配置拦截器:
+	1.编写拦截器
+@Slf4j
+public class MyInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        log.debug("这是MyInterceptor的preHandle方法");
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        log.debug("这是MyInterceptor的postHandle方法");
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        log.debug("这是MyInterceptor的afterCompletion方法");
+    }
+}
+	2.编写配置类，在该类中添加各种组件
+@Configuration
+public class MvcConfig implements WebMvcConfigurer {
+//    注册拦截器
+    @Bean
+    public MyInterceptor myInterceptor(){
+        return new MyInterceptor();
+    }
+//    添加拦截器到spring MVC 拦截器链
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(myInterceptor()).addPathPatterns("/*");//拦截所有
+    }
+}
+	3.测试
+spring boot整合事务和连接池
+事务配置：
+1.添加事务相关的启动依赖项，mysql相关依赖
+<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+2.编写业务类@Transactional
+   @Transactional //事务配置
+    public void saveUser(User user){
+        System.out.println("new user");
+    }
+数据库连接池hikari配置
+spring:
+  profiles:
+    active: abc,cc
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/test?serverTimezone=UTC
+    username: root
+    password: 071126
+只需要在application配置文件中指定数据库相关参数
+spring Boot 整合mybatis
+1.添加启动器依赖
+   <dependency>
+        <groupId>org.mybatis.spring.boot</groupId>
+        <artifactId>mybatis-spring-boot-starter</artifactId>
+        <version>2.1.4</version>
+    </dependency>
+2.配置mybatis：实体类别名包，日志，映射文件等
+mybatis:
+#  实体名别名包
+  type-aliases-package: com.Wang.pojo
+#  映射文件路径
+#  mapper-locations: classpath:mapper/*.xml
+#  日志配置
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+3.配置mapperScan
+在启动器类加上
+//扫描mybatis所有业务接口
+@MapperScan("com.Wang.mapper")
+spring boot 整理通用mapper 可以实现自动拼接sql，所有的Mapper都不需要编写任何方法（sql语句）
+1.添加启动器依赖
+    <dependency>
+        <groupId>tk.mybatis</groupId>
+        <artifactId>mapper-spring-boot-starter</artifactId>
+        <version>2.1.5</version>
+    </dependency>
+2.改造UserMapper继承Mapper<User>
+public interface UserMapper extends Mapper<User> {
+}
+3.修改启动器引导类Application中的Mapper扫描注解;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import tk.mybatis.spring.annotation.MapperScan;
+
+//spring boot 工程都有一个启动引导类，这是工程的入口
+//并在引导类上添加@SpringBootApplication
+@SpringBootApplication
+//扫描mybatis所有业务接口
+//@MapperScan("com.Wang.mapper")
+@MapperScan("com.Wang.mapper")
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class,args);
+    }
+}
+
+4.修改User实体类添加jpa注解
+//在编译阶段，会根据注解自动生成对应的方法；data包含get/set/hashCode/equals/toString方法
+@Data
+@Table(name="sys_user")
+public class User {
+    @Id
+//    主键值回填
+    @KeySql(useGeneratedKeys = true)
+    private Integer id;
+    //    字段名与数据库中的名字一样，可以不加Column(name="abc")
+    @Column
+    private String username;
+    private String email;
+    private String password;
+    private String phoneNum;
+}
+5.改造UserService，实现功能
+@Service
+public class UserService {
+    @Autowired
+    private UserMapper userMapper;
+    //根据id查询
+    public User findById(Integer id){
+        return userMapper.selectByPrimaryKey(id);
+    };
+    @Transactional //事务配置
+    public void saveUser(User user){
+        System.out.println("new user");
+//        选择性新增 
+        userMapper.insertSelective(user);
+    }
+}
+测试：
+改造HelloController，注入Userservice利用其方法实现查询
+
+启动项目进行猜测
+junit整合
+<!--    测试整合包-->
+    <dependency>
+        <groupId>org.mybatis.spring.boot</groupId>
+        <artifactId>spring-boot-start-test</artifactId>
+    </dependency>
+@RunWith(SpringRunner.class)
+@SpringBootTest
+class UserServiceTest {
+    @Autowired
+    private UserService userService;
+    @Test
+    public void findById(){
+        System.out.println(userService.findById(8));
+    }
+    @Test
+    public void saveUser(){
+        User user = new User();
+        user.setUsername("test1");
+        user.setEmail("123.123@123.com");
+        user.setPhoneNum("1526537127");
+        user.setPassword("6217623187");
+        userService.saveUser(user);
+    }
+}
+spring boot 整合redis
+添加依赖
+ <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+修改application参数
+  redis:
+    host: localhost
+    port: 6379
+编写测试类应用ResdisTemplate操作 中的5种数据类型（string/hash/list/set/sortedset）
+
+部署： 添加组件，将项目资源打包在jar包中
+ <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+java-jar 包名
