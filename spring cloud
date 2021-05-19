@@ -1,0 +1,47 @@
+Spring Cloud 实现了配置管理，服务发现，智能路由，负载均衡，熔断器，控制总线，集群状态
+等功能，协调分布环境中各个系统，为各服务提供模板性配置，其主要组件：
+	Eureka：注册中心
+	Zuul、Gateway：服务网关
+	Ribbon：负载均衡
+	Feign：服务调用
+	Hystrix或Resilience4j:熔断器
+使用，在需要的时候在启动器添加对应的启动器依赖
+
+
+父工程 Wang_springcloud:添加spring boot父坐标，和管理其他组件的依赖
+<!--            spring cloud-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope> 
+            </dependency>
+通过scope的import可以继承 spring-cloud-dependencies工程中的依赖
+用户服务工程user_service:整合mybatis查询数据库中用户数据
+可以访问http://localhost:9091/user/8输出用户数据
+实现步骤：
+1.添加启动器依赖（web 通用mapper）
+2.创建启动引导类和配置文件；
+3.修改配置文件中的参数
+4.编写测试代码（userMapper，userService，userController）
+5.测试
+服务消费工程：利用查询用户服务获取用户数据并输出到游览器
+
+出现的问题：
+1.服务管理
+如何实现自动注册和发现
+如何实现状态监管
+如何实现动态路由
+2.服务如何实现负载均衡
+3.服务如何解决容灾问题
+4.服务如何实现统一配置
+EureKa注册中心：
+主要功能：进行服务的管理，定期检查服务状态，返回服务地址列表
+只做服务注册，自身并不提供服务也不消费服务，可以搭建web工程使用Eureka，可以使用Spring boot 方式搭建
+1.搭建工程
+2.添加启动器依赖
+3.编写启动器引导类（添加Eurka的服务器注解）和配置文件
+4.修改配置文件（端口。应用名称。。。）
+5.启动测试
+
