@@ -41,7 +41,110 @@ EureKa注册中心：
 只做服务注册，自身并不提供服务也不消费服务，可以搭建web工程使用Eureka，可以使用Spring boot 方式搭建
 1.搭建工程
 2.添加启动器依赖
+<dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        <version>2.1.5.RELEASE</version>
+    </dependency>
 3.编写启动器引导类（添加Eurka的服务器注解）和配置文件
+//声明当前应用是Eureka服务
+@EnableEurekaServer
+@SpringBootApplication
+public class EurekaServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaServerApplication.class, args);
+    }
+}
+
 4.修改配置文件（端口。应用名称。。。）
+server:
+  port: 10086
+spring:
+  application:
+    name: eureka-server
+eureka:
+  client:
+    service-url:
+      #eureka服务地址，如果是集群，需要指定其他集群eureka地址
+      defaultZone:http://127.0.0.1:10086/eureka
+    #自己不注册，集群为true
+    register-with-eureka: false
+    #不拉取服务
+    fetch-registry: false
 5.启动测试
 
+ <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        <version>2.1.5.RELEASE</version>
+    </dependency>
+    依赖坐标
+
+服务端改造：
+@SpringBootApplication
+@MapperScan("com.Wang.User.mapper")
+//开启发现端发现功能
+@EnableEurekaClient
+public class UserApplication {
+    public static void main(String[] args) {
+        SpringApp42slication.run(UserApplication.class, args);
+    }
+}
+yml：
+server:
+  port: 9091
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test？useUnicode=true&characterEncodeing=utf-8&serverTimezone=Asia/Shanghai
+    password: 071126
+    username: root
+  application:
+    name: user-service
+mybatis:
+  type-aliases-package: com.Wang.User.pojo
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+
+消费端改造：
+@SpringBootApplication
+@EnableEurekaClient
+public class ConsumerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ConsumerApplication.class, args);
+    }
+    @Bean
+    public RestTemplate restTemplate(){
+        return  new RestTemplate();
+    }
+}
+@RestController
+@RequestMapping("/consumer")
+public class ConsumerController {
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    //import org.springframework.cloud.client.discovery.DiscoveryClient;
+    private DiscoveryClient discoveryClient;
+    @GetMapping("/{id}")
+    public ResponseEntity<User> queryById(@PathVariable Integer id){
+        String url;
+        //获取eureka中注册的user-service实例
+        List<ServiceInstance> instances = discoveryClient.getInstances("user-service");
+        ServiceInstance serviceInstance = instances.get(0);
+
+        //组装url地址
+        url="http://" + serviceInstance.getHost()+":"+serviceInstance.getPort()+"/user/"+id;
+        return restTemplate.getForEntity(url,User.class);
+    }
+}
+yml：
+spring:
+  application:
+    name: consumer-demo
+eureka:
+  client:
+    service-url:
+      datafaultZone:http://127.0.0.1:10086/eureka
