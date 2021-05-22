@@ -1,0 +1,116 @@
+服务同步
+多个 Eureka server之间会相互注册，当服务提供者注册导Eureka server集群中某个节点时，该节点会把服务
+的信息同步给集群的每个节点，实现数据同步 Eurekaji集群
+Application.yml 配置：高可用配置，将自身作为一个服务注册导其他的，这样集群之间就能相互发现，相互注册服务。
+server:
+  port: ${port:10086}
+spring:
+  application:
+    name: eureka-server
+eureka:
+  client:
+    service-url:
+      #eureka服务地址，如果是集群，需要指定其他集群eureka地址
+      defaultZone: ${defaultZone:http://127.0.0.1:10086/eureka}
+    #自己不注册，集群为true
+    register-with-eureka: true
+    #不拉取服务 默认为true
+    fetch-registry: true
+
+ -Dport=10087 -DdefaultZone=http://127.0.0.1:10088/eureka 端口配置
+
+Eureka客户端与服务端的配置：
+Eureka客户端工程
+User-service
+服务地址使用ip地址
+  instance:
+#    有选择选择IP地址，而不是localhost
+    prefer-ip-address: true
+#    IP地址
+    ip-address: 127.0.0.1
+
+续约
+Instance：
+#    服务失效时间
+    lease-expiration-duration-in-seconds: 90
+#    多久续约一次
+    lease-renewal-interval-in-seconds: 30
+
+Consumer-deom 
+获取服务地的频率
+#    获取服务列表间隔时间
+    registry-fetch-interval-seconds: 10
+
+Eureka服务端工程 eureka-server
+失效剔除：
+ server:
+#    服务失效剔除时间，默认60
+    eviction-interval-timer-in-ms: 20
+自我保护：
+#    自我保护模式
+    enable-self-preservation: false
+
+负载均衡：
+Ribbon
+负载均衡：一个算法，可以通过该算法可以从地址列表中获取一个地址服务调用
+在spring Cloud提供的负载均衡器：Ribbon
+提供了轮询，随机两种负载均衡算法，默认轮询，可以实现从地址列表中使用负载均衡算法获得地址进行服务调用
+可以使用RestTemplate访问获取数据:
+使用Ribbon负载均衡：在执行RestTemplate 发送服务地址的时候，，使用负载均衡拦截器，根据服务名获取服务列表，使用Ribbon负载均衡算法从服务地址列表中选择一个服务地址，访问该地址。
+实现步骤
+1.	启动多个user-service实例
+2.	修改RestTemplate实例化方法，添加负载均衡注解。
+3.	修改ConsumerController；
+4.	测试负载均衡。
+5.	在实例化RestTemplate的时候使用@LoadBalance
+熔断器Hystrix 提供保护机制的组件。
+是一个延迟和容错库，用于隔离访问远程服务，方式出现级联失败。
+线程隔离与服务降级：
+线程隔离：用户请求不直接访问服务，而是使用线程池中空闲的线程访问服务，加速失败判断时间。
+降级服务：及时返回服务调用失败的结果让线程不因为等服务而阻塞。
+服务消费方：
+添加依赖：
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+    <version>2.1.5.RELEASE</version>
+</dependency>
+Application应用添加@EnableCircuitBreaker
+/*@SpringBootApplication
+@EnableEurekaClient//开启Eureka客户端发现功能
+@EnableCircuitBreaker//开启熔断*/
+@SpringCloudApplication//包含了上面注解
+降级服务：
+原访问加：
+@GetMapping("/{id}")
+@HystrixCommand(fallbackMethod = "queryByIdFallBack")
+多个徐添加@DefaultProperties(defaultFallback = "defaultFallback")
+public String defaultFallback(){
+    return "默认降级方法";
+}
+//    编写降级逻辑
+    public String queryByIdFallBack(Integer id){
+        log.error("查询用户信息失败。id:{}",id);
+        return "网络拥挤访问不聊";
+    }
+配置项配置超时时间：
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMillisecond: 2000
+超时时间为两秒了
+服务熔断原理：
+hystrix:
+  command:
+    default:
+      circuitBreaker:
+        errorThresholdPercentage: 50 #触发熔断错误阈值比例 默认50%
+        sleepWindowInMilliseconds: 10000 #熔断后休眠时长
+        requestVolumeThreshold: 10 #熔断触发最小请求次数 默认20
+      execution:
+        isolation:
+          thread:
+            timeoutInMillisecond: 2000
