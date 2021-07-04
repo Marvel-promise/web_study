@@ -1,0 +1,60 @@
+package com.Wang.producer;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/*发送消息*/
+public class Producer_HelloWord {
+    public static void main(String[] args) throws IOException, TimeoutException {
+
+        //建立连接工厂   使用工厂模式
+        ConnectionFactory factory = new ConnectionFactory();
+        //设置参数
+        factory.setHost("http://192.168.71.132"); //ip地址，默认本机地址
+        factory.setPort(5672);//设置端口，默认是5672
+        factory.setVirtualHost("/marvel"); //虚拟机，默认值/
+        factory.setUsername("marvel"); //用户名 默认guest
+        factory.setPassword("071126");//密码 默认guest
+        //获取连接
+        Connection connection = factory.newConnection();
+//        创建Channel
+        Channel channel = connection.createChannel();
+//        创建队列Queue
+        /*
+        *     public com.rabbitmq.client.AMQP.Queue.DeclareOk queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments) throws IOException {
+        com.rabbitmq.client.AMQP.Queue.DeclareOk ok = this.delegate.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
+        this.recordQueue(ok, queue, durable, exclusive, autoDelete, arguments);
+        return ok;
+        * 参数 ：
+        * queue:队列名称
+        * durable是否持久化，当mq重启之后，还存在
+        * exclusive 是否独占。只能有一个消费者监听这个队列
+        * 当connection关闭时，是否删除队列
+        * autoDelete：是否自动删除，当没有consumer时自动删除
+        * arguments：
+    }
+        * */
+        channel.queueDeclare("hello_world",true,false,false,null);
+        //如果没有hello——world的队列将被创建，没有将不被创建
+//        发送消息
+        /*
+        *
+        * public void basicPublish(String exchange, String routingKey, BasicProperties props, byte[] body) throws IOException {
+        this.delegate.basicPublish(exchange, routingKey, props, body);
+    }
+    * 参数1.exchange:交换机名称，简单模式下交换机会使用默认的”“
+    * routingKey:路由名称
+    * props：路由名称
+    * body:发送的消息数据
+    * */
+        String body = "hello rabbitmq//////";
+        channel.basicPublish("","hello_world",null,body.getBytes());
+//        释放资源
+        channel.close();
+        connection.close();
+    }
+}
